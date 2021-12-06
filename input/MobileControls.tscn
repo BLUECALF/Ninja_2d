@@ -1,0 +1,47 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://input/right.tscn" type="PackedScene" id=1]
+[ext_resource path="res://input/left.tscn" type="PackedScene" id=2]
+[ext_resource path="res://input/34.png" type="Texture" id=3]
+[ext_resource path="res://input/29.png" type="Texture" id=4]
+[ext_resource path="res://input/25.png" type="Texture" id=5]
+[ext_resource path="res://input/35.png" type="Texture" id=6]
+
+[sub_resource type="CircleShape2D" id=1]
+
+[node name="CanvasLayer" type="CanvasLayer"]
+__meta__ = {
+"_edit_horizontal_guides_": [ 514.579 ],
+"_edit_vertical_guides_": [ 689.485, 952.993 ]
+}
+
+[node name="left" parent="." instance=ExtResource( 2 )]
+position = Vector2( 73.0754, 393.043 )
+
+[node name="right" parent="." instance=ExtResource( 1 )]
+position = Vector2( 236.865, 396.55 )
+
+[node name="triangle" parent="." instance=ExtResource( 1 )]
+position = Vector2( 765.865, 268.55 )
+scale = Vector2( 2.5, 2.5 )
+normal = ExtResource( 6 )
+shape = SubResource( 1 )
+action = "player_jump"
+
+[node name="square" parent="." instance=ExtResource( 1 )]
+position = Vector2( 689.569, 359.55 )
+scale = Vector2( 2.5, 2.5 )
+normal = ExtResource( 3 )
+action = "player_throw_kunai"
+
+[node name="circle" parent="." instance=ExtResource( 1 )]
+position = Vector2( 853.865, 356.55 )
+scale = Vector2( 2.5, 2.5 )
+normal = ExtResource( 4 )
+action = "player_slide"
+
+[node name="x" parent="." instance=ExtResource( 1 )]
+position = Vector2( 774.443, 455.144 )
+scale = Vector2( 2.5, 2.5 )
+normal = ExtResource( 5 )
+action = "player_attack"
