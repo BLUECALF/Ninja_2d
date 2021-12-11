@@ -6,7 +6,9 @@ extends KinematicBody2D
 # var b: String = "text"
 onready var anim_player :AnimationPlayer = get_node("AnimationPlayer")
 onready var nav_to_loot :Navigation2D = get_node("..").get_node("nav_to_loot")
-
+onready var line_2d :Line2D  = get_node("..").get_node("Line2D")
+# timer to change enemny states.
+onready var e_timer :Timer = $Timer
 
 export var speed: = Vector2(100,500)
 export var gravity = 1000;
@@ -19,13 +21,13 @@ var my_initial_pos : = global_position
 var my_initial_pos_2 :Vector2
 var loot_pos : = Vector2(18400,340)
 var path :PoolVector2Array
-var i  :int  = 1 
+var i  :int  = 0 
 var path_last_point : int = path.size() -1
 var move_velocity :Vector2
 
 # enemy_properties used in animations.
 enum _ENEMY_IS_LOOKING {LEFT, RIGHT}
-enum  _ENEMY_STATE {PATROLL, IDLE,CHECK_LOOT,ATTACK,RETREAT,DIE}
+enum  _ENEMY_STATE {PATROLL, IDLE,CHECK_LOOT,RETURN_FROM_CHECKLOOT,ATTACK,RETREAT,DIE}
 
 var _enemy_is_looking : int = _ENEMY_IS_LOOKING.LEFT
 var _enemy_state : int = _ENEMY_STATE.CHECK_LOOT
@@ -39,6 +41,15 @@ func _ready() -> void:
 	move_velocity =  (path[i] - global_position)
 	my_initial_pos_2 = global_position
 	path_last_point = path.size() - 1
+	my_initial_pos = global_position
+	
+	# TIMER CALCULATIONS USED TO CHANGE ENEMY STATE
+	
+	
+	e_timer.wait_time = 5
+	
+	
+	
 	
 	print("move velocity",move_velocity,"  ::")
 	print("path[i] - global_position = ", (path[i] - (global_position)))
@@ -58,6 +69,7 @@ func _process(delta: float) -> void:
 	
 	#ENEMY SHOULD
 	#1 PATROLL
+	#CHECK LOOT         & RETURN FROM CHECKLOOT
 	#2 BE IDLE
 	#4 SEEYOU 
 	#5 ATTACK YOU
@@ -66,23 +78,34 @@ func _process(delta: float) -> void:
 	
 	
 	if (_enemy_state == _ENEMY_STATE.PATROLL):
+		
 		_getVelocity()
 		_getAnimation()
 		move_and_slide(_velocity,Vector2.UP)
 		_previous_direction = _direction
 		
-		
-	elif(_enemy_state == _ENEMY_STATE.CHECK_LOOT):
-#		print("checkloot runs:::::::::")
-#		print("the value of i ::: ",i)
-#		print("my pos boooizz:::::",global_position)
-		_check_loot()
-
 	
+	
+	elif(_enemy_state == _ENEMY_STATE.CHECK_LOOT):
+		
+		line_2d.points = path
+		_check_loot(loot_pos,path,path_last_point,_ENEMY_STATE.RETURN_FROM_CHECKLOOT)
+	
+	elif(_enemy_state == _ENEMY_STATE.RETURN_FROM_CHECKLOOT):
+		path = nav_to_loot.get_simple_path(loot_pos,my_initial_pos,true)
+		path_last_point = path.size() -1
+		line_2d.points = path
+		_check_loot(my_initial_pos,path,path_last_point,_ENEMY_STATE.PATROLL)
+		pass
+
 
 func _getVelocity() -> void:
 	_velocity.x  = speed.x *_direction.x;
 	_velocity.y  =  _velocity.y + (gravity * get_physics_process_delta_time())
+	if(_velocity.x > 0):
+		get_node("Sprite").flip_h = false
+	else:
+		$Sprite.flip_h = true
 	if(_direction.y ==-1.0 and _previous_direction.y ==1):
 		_velocity.y = speed.y * _direction.y
 
@@ -111,7 +134,14 @@ func _on_Area_detector_area_entered(area: Area2D) -> void:
 
 ##	FUNCTIONS USED WHEN THE ENEMY IS CHECKING LOOOT
 
-func _check_loot() ->void:
+func _check_loot(
+		
+		target_pos:Vector2,
+		path:PoolVector2Array,
+		path_last_point : int,
+		next_enemy_state:int
+
+) ->void:
 	#1.know your position and loot position~
 	#2.find a path to the loot.~
 	#3find points to the path
@@ -121,7 +151,14 @@ func _check_loot() ->void:
 	#7 return to where you were before checloot 
 	#8 return patrolling.
 	
-	if(global_position != loot_pos):
+	# flip well according to direction.
+	if(move_velocity.x>0):
+		get_node("Sprite").flip_h = false
+	else:
+		$Sprite.flip_h = true
+	
+	
+	if(global_position != target_pos):
 		
 		move_and_slide(move_velocity)
 		
@@ -136,13 +173,14 @@ func _check_loot() ->void:
 		if my_initial_pos_2.x >= path[i].x and my_initial_pos_2.y >= path[i].y :
 			# lesser means we have reached.
 			print("sec 1")
-			if((global_position.x <= path[i].x and global_position.y <= path[i].y) and i <= path_last_point):
+			print(my_initial_pos_2,"pos : 2")
+			print(my_initial_pos,"initial pos")
+			print("i =",i,"\n")
+			
+			if((global_position.x <= path[i].x or global_position.y <= path[i].y) and i <= path_last_point):
 				i = i + 1
 				if(i == path.size()): #check if we have reached end of path.
-					i = 0
-					path.empty()
-					move_velocity = Vector2(0,speed.y)
-					global_position = loot_pos
+					_on_reaching_destination(next_enemy_state,target_pos)
 					return
 					
 				#reset initial position to your pos
@@ -154,13 +192,10 @@ func _check_loot() ->void:
 		elif my_initial_pos_2.x >= path[i].x and my_initial_pos_2.y <= path[i].y :
 			#lesser in x and greater in y means we have reached.
 			print("sec 2")
-			if((global_position.x <= path[i].x and global_position.y >= path[i].y) and i <= path_last_point):
+			if((global_position.x <= path[i].x or global_position.y >= path[i].y) and i <= path_last_point):
 				i = i + 1
 				if(i == path.size()):
-					i = 0
-					path.empty()
-					move_velocity = Vector2(0,speed.y)
-					global_position = loot_pos
+					_on_reaching_destination(next_enemy_state,target_pos)
 					return
 					
 				#reset initial position to your pos
@@ -171,15 +206,12 @@ func _check_loot() ->void:
 			
 		elif my_initial_pos_2.x <= path[i].x and my_initial_pos_2.y >= path[i].y :
 			print("sec 3")
+			print("in 3 i  = ",i)
 			#greater in x and lesser in y means we have reached.
 			if((global_position.x >= path[i].x and global_position.y <= path[i].y) and (i <= path_last_point)):
 				i = i + 1
 				if(i == path.size()): #check if we have reached end of path.
-					i = 0
-					path.empty()
-					move_velocity = Vector2(0,speed.y)
-					global_position = loot_pos
-					print("destination reached")
+					_on_reaching_destination(next_enemy_state,target_pos)
 					return
 					
 				#reset initial position to your pos
@@ -190,18 +222,27 @@ func _check_loot() ->void:
 		elif my_initial_pos_2.x <= path[i].x and my_initial_pos_2.y <= path[i].y :
 			#greater in x and greater in y means we have reached.
 			print("sec 4")
-			if((global_position.x >= path[i].x and global_position.y >= path[i].y) and i <= path_last_point):
+			print(move_velocity)
+			if((global_position.x >= path[i].x or global_position.y >= path[i].y) and i <= path_last_point):
 				i = i + 1
+				print("i in section 4 increased ")
+				print("i   =  ",i)
 				if(i == path.size()): #check if we have reached end of path.
-					i = 0
-					path.empty()
-					move_velocity = Vector2(0,speed.y)
-					global_position = loot_pos
-					print("destination reached")
-					return
+					_on_reaching_destination(next_enemy_state,target_pos)
 					
+					return
 				#reset initial position to your pos
 				my_initial_pos_2 = global_position
 				
 				print("i = :",i)
 				move_velocity = path[i] - global_position
+
+
+func _on_reaching_destination(next_enemy_state:int,target_pos : Vector2)->void:
+	i = 0
+	move_velocity = Vector2(0,-200)
+	global_position = target_pos
+	_enemy_state = next_enemy_state
+	my_initial_pos_2 = global_position
+	if(next_enemy_state == _ENEMY_STATE.PATROLL):
+		get_node("..").done  = 1 

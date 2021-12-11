@@ -9,39 +9,30 @@ var move_vector : Vector2
 var i :int
 var j :int = 0
 var loop  : =  true
+var done:int  = 1
+var check_loot_delay : int 
 
 func _ready() -> void:
-	set_process(false)
 	path = nav_2d.get_simple_path(enemy.global_position,destination,true)
 	line_2d.points = path
-	i  = path.size()
-	move_vector = (path[j] - enemy.global_position) 
-	
-	# VALUES NEEDED FOR CALCULATION
-	
-#	print("enemy position : ")
-#	print(enemy.global_position)
-#	var size :=  path.size()
-#	for i in path.size() :
-#		print("point ",i)
-#		print(path[i])
-#		print("path size is : ",path.size())
-		
+	randomize()
+	check_loot_delay = rand_range(5,15)
+
 
 func _process(delta: float) -> void:
-	#print("process is true in level script ::")
-	enemy.move_and_slide(move_vector)
-	_move_check_enemy()
-	
+	yield(get_tree().create_timer(10),"timeout")
+	if(done == 1 and enemy._enemy_state == 0):
+		enemy.path = enemy.nav_to_loot.get_simple_path(enemy.global_position,enemy.loot_pos,true)
+		enemy.i = 0
+		enemy.move_velocity =  (enemy.path[i] - enemy.global_position)
+		enemy.my_initial_pos_2 = enemy.global_position
+		enemy.path_last_point = enemy.path.size() - 1
+		enemy.my_initial_pos = enemy.global_position
+		enemy._enemy_state = 2
+		done = 2;
+		print("####### size of  path ",path.size())
+	else :
+		check_loot_delay = rand_range(5,15)
 	pass
 
 
-func _move_check_enemy() -> void:
-	if (enemy.global_position != destination):
-		if(j==path.size()):
-				move_vector = Vector2(0,1)
-				print("this function finishhed :::::")
-				return
-		elif(enemy.global_position >= path[j] and j< path.size()-1):
-			j += 1
-			move_vector = path[j] - (enemy.global_position)

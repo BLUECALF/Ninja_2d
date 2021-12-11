@@ -53,8 +53,8 @@ func calculate_move_velocity(
 	# WHAT HAPPENS WHEN THE PLAYER JUMPS 
 	if(_direction.y ==-1.0):
 		new_velocity.y = speed.y * _direction.y
-	if(new_velocity.y >= 1500):
-		new_velocity.y = 1500
+	if(new_velocity.y >= 500):
+		new_velocity.y = 500
 	return new_velocity
 
 
