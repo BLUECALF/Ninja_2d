@@ -12,6 +12,9 @@ var loop  : =  true
 var done:int  = 1
 var check_loot_delay : int 
 
+
+
+
 func _ready() -> void:
 	path = nav_2d.get_simple_path(enemy.global_position,destination,true)
 	line_2d.points = path
@@ -20,19 +23,19 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	yield(get_tree().create_timer(10),"timeout")
-	if(done == 1 and enemy._enemy_state == 0):
-		enemy.path = enemy.nav_to_loot.get_simple_path(enemy.global_position,enemy.loot_pos,true)
-		enemy.i = 0
-		enemy.move_velocity =  (enemy.path[i] - enemy.global_position)
-		enemy.my_initial_pos_2 = enemy.global_position
-		enemy.path_last_point = enemy.path.size() - 1
-		enemy.my_initial_pos = enemy.global_position
-		enemy._enemy_state = 2
-		done = 2;
-		print("####### size of  path ",path.size())
-	else :
-		check_loot_delay = rand_range(5,15)
+#	yield(get_tree().create_timer(10),"timeout")
+#	if(done == 1 and enemy._enemy_state == 0):
+#		enemy.path = enemy.nav_to_loot.get_simple_path(enemy.global_position,enemy.loot_pos,true)
+#		enemy.i = 0
+#		enemy.move_velocity =  (enemy.path[i] - enemy.global_position)
+#		enemy.my_initial_pos_2 = enemy.global_position
+#		enemy.path_last_point = enemy.path.size() - 1
+#		enemy.my_initial_pos = enemy.global_position
+#		enemy._enemy_state = 2
+#		done = 2;
+#		print("####### size of  path ",path.size())
+#	else :
+#		check_loot_delay = rand_range(5,15)
 	pass
 
 

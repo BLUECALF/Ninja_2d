@@ -1,14 +1,19 @@
 extends KinematicBody2D
 
 
+
+ 
 # Declare member variables here. Examples:
 # var a: int = 2
 # var b: String = "text"
 onready var anim_player :AnimationPlayer = get_node("AnimationPlayer")
 onready var nav_to_loot :Navigation2D = get_node("..").get_node("nav_to_loot")
 onready var line_2d :Line2D  = get_node("..").get_node("Line2D")
-# timer to change enemny states.
-onready var e_timer :Timer = $Timer
+
+var enemy_timer  =  preload("res://object_scenes/enemy_timer.tscn")
+var e_timer
+
+var status  = true
 
 export var speed: = Vector2(100,500)
 export var gravity = 1000;
@@ -30,7 +35,7 @@ enum _ENEMY_IS_LOOKING {LEFT, RIGHT}
 enum  _ENEMY_STATE {PATROLL, IDLE,CHECK_LOOT,RETURN_FROM_CHECKLOOT,ATTACK,RETREAT,DIE}
 
 var _enemy_is_looking : int = _ENEMY_IS_LOOKING.LEFT
-var _enemy_state : int = _ENEMY_STATE.CHECK_LOOT
+var _enemy_state : int = _ENEMY_STATE.PATROLL
 
 
 # Called when the node enters the scene tree for the first time.
@@ -44,11 +49,14 @@ func _ready() -> void:
 	my_initial_pos = global_position
 	
 	# TIMER CALCULATIONS USED TO CHANGE ENEMY STATE
+	e_timer =  enemy_timer.instance()
+	e_timer.connect("time_finished", self, "_on_timer_timeout")
 	
 	
-	e_timer.wait_time = 5
 	
+	print(e_timer.name," e timers name")
 	
+	print("############# timer added successfully")
 	
 	
 	print("move velocity",move_velocity,"  ::")
@@ -66,6 +74,12 @@ func _ready() -> void:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
+	while (status):
+		get_tree().get_root().add_child(e_timer)
+		
+		status = false
+	
+	
 	
 	#ENEMY SHOULD
 	#1 PATROLL
@@ -245,4 +259,20 @@ func _on_reaching_destination(next_enemy_state:int,target_pos : Vector2)->void:
 	_enemy_state = next_enemy_state
 	my_initial_pos_2 = global_position
 	if(next_enemy_state == _ENEMY_STATE.PATROLL):
-		get_node("..").done  = 1 
+		#make a new timer to count until next checkloot
+		e_timer = enemy_timer.instance()
+		e_timer.connect("time_finished", self, "_on_timer_timeout")
+		get_tree().get_root().add_child(e_timer)
+
+func _on_timer_timeout() ->void:
+	
+	print("Timer timeout was recived bpoooooiizi \n")
+	if(_enemy_state == _ENEMY_STATE.PATROLL):
+		path = nav_to_loot.get_simple_path(global_position,loot_pos,true)
+		i = 0
+		move_velocity =  (path[i] - global_position)
+		my_initial_pos_2 = global_position
+		path_last_point = path.size() - 1
+		my_initial_pos = global_position
+		_enemy_state = _ENEMY_STATE.CHECK_LOOT
+	
