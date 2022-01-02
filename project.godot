@@ -71,6 +71,7 @@ pointing/emulate_touch_from_mouse=true
 2d_physics/layer_2="enemy"
 2d_physics/layer_3="world"
 2d_physics/layer_4="enemy_stopper"
+2d_physics/layer_5="loot_box"
 
 [physics]
 

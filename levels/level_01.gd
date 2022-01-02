@@ -1,25 +1,22 @@
 extends Node2D
 
-onready var nav_2d : Navigation2D  = get_node("nav_to_loot")
-onready var line_2d : Line2D = $Line2D
-onready var enemy:KinematicBody2D = $enemy
-onready var path : PoolVector2Array
-var destination = Vector2(18400,320)
-var move_vector : Vector2
-var i :int
-var j :int = 0
-var loop  : =  true
-var done:int  = 1
-var check_loot_delay : int 
+#onready var nav_2d : Navigation2D  = get_node("nav_to_loot")
+#onready var line_2d : Line2D = $Line2D
+#onready var enemy:KinematicBody2D = $enemy
+#onready var path : PoolVector2Array
+#var destination = Vector2(18400,320)
+#var move_vector : Vector2
+#var i :int
+#var j :int = 0
+#var loop  : =  true
+#var done:int  = 1
+#var check_loot_delay : int 
 
 
 
 
 func _ready() -> void:
-	path = nav_2d.get_simple_path(enemy.global_position,destination,true)
-	line_2d.points = path
-	randomize()
-	check_loot_delay = rand_range(5,15)
+	pass
 
 
 func _process(delta: float) -> void:

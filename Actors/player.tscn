@@ -229,7 +229,10 @@ tracks/1/keys = {
 "values": [ false, false ]
 }
 
-[node name="player" type="KinematicBody2D"]
+[node name="player" type="KinematicBody2D" groups=[
+"player",
+]]
+collision_mask = 20
 script = ExtResource( 21 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
